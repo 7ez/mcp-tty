@@ -7,6 +7,13 @@ shell per SSH host, run a REPL, and answer interactive prompts (passwords, y/n) 
 
 ## Install
 
+Windows and macOS: works out of the box, [node-pty](https://github.com/microsoft/node-pty)
+ships prebuilt binaries for both.
+
+Linux: node-pty has no prebuilt binary for this version, so it compiles from source on
+install. Needs a C++ toolchain first: `sudo apt install build-essential python3` (Debian/
+Ubuntu) or the equivalent for your distro.
+
 ```
 npm install
 npm run build
@@ -22,7 +29,7 @@ Point your client at `node dist/index.js` (stdio transport), e.g. in Claude Code
   "mcpServers": {
     "mcp-tty": {
       "command": "node",
-      "args": ["C:/path/to/mcp-tty/dist/index.js"]
+      "args": ["/path/to/mcp-tty/dist/index.js"]
     }
   }
 }

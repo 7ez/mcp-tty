@@ -14,7 +14,7 @@ describe("ShellSession", () => {
 
   it("runs a command and returns its output once idle", async () => {
     session = new ShellSession({ id: "t1", shell });
-    await session.waitQuiet(150, 5000);
+    await session.waitQuiet(400, 5000);
     session.write("echo mcpsh-test-marker\r");
 
     const result = await session.waitIdle(300, 10_000);
@@ -26,7 +26,7 @@ describe("ShellSession", () => {
   it("waitQuiet settles and discards output still in flight (e.g. startup banner)", async () => {
     session = new ShellSession({ id: "t1b", shell });
 
-    await session.waitQuiet(150, 5000);
+    await session.waitQuiet(400, 5000);
     session.write("echo after-settle\r");
     const result = await session.waitIdle(300, 10_000);
 
@@ -35,7 +35,7 @@ describe("ShellSession", () => {
 
   it("strips ANSI escape sequences from drained output", async () => {
     session = new ShellSession({ id: "t2", shell });
-    await session.waitQuiet(150, 5000);
+    await session.waitQuiet(400, 5000);
     session.write("echo plain-text\r");
 
     const result = await session.waitIdle(300, 10_000);
@@ -45,7 +45,7 @@ describe("ShellSession", () => {
 
   it("waitForData returns immediately if output is already buffered", async () => {
     session = new ShellSession({ id: "t3", shell });
-    await session.waitQuiet(150, 5000);
+    await session.waitQuiet(400, 5000);
     session.write("echo buffered\r");
     await session.waitIdle(300, 10_000);
 

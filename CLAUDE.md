@@ -33,6 +33,13 @@ npm run dev      # tsx src/index.ts, no build step
   startup output before writing a new command. Using the wrong one reintroduces a
   race that eats the first line of real output. `shell_exec` calls `waitQuiet` then
   writes then `waitIdle`; don't collapse that into a single settle-less write.
+- **PowerShell's startup output has a second gap.** Banner text and the prompt line
+  (`PS C:\...>`) don't arrive as one contiguous burst — there's a further gap between
+  them (observed ~15ms, worse under load) that a too-short settle window can miss,
+  returning from `waitQuiet` *before* the prompt itself has arrived. `SETTLE_IDLE_MS`
+  is 400 (not the original 150) because of this — confirmed by direct timing
+  (`s.on('data', ...)` timestamps) that 150ms genuinely wasn't enough, this wasn't
+  test flakiness. Don't lower it without re-measuring on a loaded machine.
 - **node-pty is patched.** `patches/node-pty+1.1.0.patch` (applied via `patch-package`
   on `postinstall`) fixes a real upstream race: killing a session forks a helper
   process to walk the console process list, and that helper can crash with

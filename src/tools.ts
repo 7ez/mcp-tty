@@ -6,7 +6,7 @@ import { SessionManager } from "./sessionManager.js";
 const DEFAULT_IDLE_MS = 300;
 const DEFAULT_EXEC_MAX_WAIT_MS = 15_000;
 const DEFAULT_READ_TIMEOUT_MS = 5_000;
-const SETTLE_IDLE_MS = 150;
+const SETTLE_IDLE_MS = 400;
 const SETTLE_MAX_WAIT_MS = 2_000;
 
 function text(value: string): CallToolResult {
