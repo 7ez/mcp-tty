@@ -91,3 +91,8 @@ entry into each client config it finds; it only touches Claude Code's *project*
 `.mcp.json` (in the current directory), not its global user config, and doesn't cover
 Continue (its config format changes too often to target reliably right now).
 
+Running it via `npx github:7ez/mcp-tty setup` installs into npm's temporary npx cache
+first. Since that cache can be cleared later (silently breaking the client if we
+pointed configs at it), `setup` detects that and copies itself to `~/.mcp-tty` before
+writing any config, so the configured path stays stable.
+

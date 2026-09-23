@@ -23,7 +23,10 @@ npm run dev      # tsx src/index.ts, no build step
   the MCP server at all.
 - `src/setup.ts` — `mcp-tty setup`: finds installed MCP clients, merges an `mcp-tty`
   entry into each one's config JSON. Read-modify-write, never blind-overwrite;
-  malformed existing JSON is left untouched, not clobbered.
+  malformed existing JSON is left untouched, not clobbered. If running from npx's
+  ephemeral cache, first copies itself (+ dependencies) to `~/.mcp-tty` and points
+  configs there instead — see gotchas below, this took three separate bugs to get
+  right and all three are easy to reintroduce.
 
 ## Known gotchas (don't re-derive these, they cost real debugging time)
 
@@ -60,6 +63,27 @@ npm run dev      # tsx src/index.ts, no build step
   Installing from a git URL only runs npm's `prepare` lifecycle, not `build` — without
   it, `dist/` never gets compiled and the `setup`/server entrypoint doesn't exist.
   Don't remove it as "redundant" with the `build` script devs run locally.
+- **`files` in package.json gates what a git install actually gets, not just
+  `npm publish`.** Confirmed by reproduction: `scripts/` was missing from every
+  git-dependency install until added to `files` — npm packs git deps the same way
+  it packs a publish tarball. If you add a new top-level dir a running script needs
+  (not just source under `src/`), it needs to be in `files` too.
+- **`patch-package`/`typescript` aren't installed when mcp-tty is someone else's
+  dependency** (nested `npm install`), only for a root/direct install — so
+  `postinstall` must tolerate `patch-package` not being resolvable (it does, see
+  `scripts/postinstall.mjs`) rather than hard-failing the whole install.
+- **`npm install -g github:7ez/mcp-tty` is unreliable, don't use it.** Reproduced
+  twice with a fully clean cache: its git-dep `prepare` step runs `npm run build`
+  *before* devDependencies are installed for that temp clone, so `tsc` isn't found
+  and the global install fails outright. `npx github:...` (regular, non-`-g`) does
+  not have this problem — that's why `setup` handles persistence itself (copying to
+  `~/.mcp-tty`) instead of relying on `npm install -g`.
+- **`npx` hoists a package's resolved dependencies as *siblings* inside the same
+  `node_modules`, not nested underneath the package.** `ensureStableInstall`'s copy
+  step has to copy `dirname(packageRoot)` (the whole node_modules), not just
+  `packageRoot` itself — copying only the package gives you source with no
+  `node_modules/node-pty` etc. to actually run against (confirmed: `MODULE_NOT_FOUND`
+  on the first import until this was fixed).
 - **ANSI is stripped on drain.** `shell_read`/`shell_exec` output has escape codes
   stripped for readability, which means full-screen TUI programs (vim, htop) won't
   render legibly through this server. That's accepted scope, not a bug to fix.
