@@ -18,7 +18,12 @@ npm run dev      # tsx src/index.ts, no build step
   idle-expiry, lifecycle. Core correctness lives here.
 - `src/sessionManager.ts` — id -> ShellSession map.
 - `src/tools.ts` — MCP tool schemas/handlers, thin layer over SessionManager.
-- `src/index.ts` — MCP server wiring, stdio transport, shutdown handlers.
+- `src/index.ts` — MCP server wiring, stdio transport, shutdown handlers. Also the
+  `setup` argv dispatch (`node dist/index.js setup`) short-circuits before touching
+  the MCP server at all.
+- `src/setup.ts` — `mcp-tty setup`: finds installed MCP clients, merges an `mcp-tty`
+  entry into each one's config JSON. Read-modify-write, never blind-overwrite;
+  malformed existing JSON is left untouched, not clobbered.
 
 ## Known gotchas (don't re-derive these, they cost real debugging time)
 
@@ -51,6 +56,10 @@ npm run dev      # tsx src/index.ts, no build step
   silently stalls real shell output in this environment (confirmed via isolated
   repro) — echo/response bytes stop arriving after the handshake. Don't re-enable it
   without a fresh repro proving it now works.
+- **`"prepare": "npm run build"` is load-bearing for `npx github:7ez/mcp-tty`.**
+  Installing from a git URL only runs npm's `prepare` lifecycle, not `build` — without
+  it, `dist/` never gets compiled and the `setup`/server entrypoint doesn't exist.
+  Don't remove it as "redundant" with the `build` script devs run locally.
 - **ANSI is stripped on drain.** `shell_read`/`shell_exec` output has escape codes
   stripped for readability, which means full-screen TUI programs (vim, htop) won't
   render legibly through this server. That's accepted scope, not a bug to fix.
