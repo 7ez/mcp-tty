@@ -104,7 +104,16 @@ function ensureStableInstall(packageRoot: string): string {
   const stableRoot = path.join(os.homedir(), ".mcp-tty");
   console.log(`Running from a temporary npx cache; copying to a persistent location: ${stableRoot}\n`);
   fs.rmSync(stableRoot, { recursive: true, force: true });
+
+  // mcp-tty's own files (dist, patches, scripts, package.json, ...).
   fs.cpSync(packageRoot, stableRoot, { recursive: true });
+
+  // npx hoists resolved dependencies as siblings of mcp-tty inside the same
+  // node_modules, not nested underneath it - copy that whole tree too, or
+  // the copy has package sources but no @modelcontextprotocol/sdk etc. to run.
+  const npxNodeModules = path.dirname(packageRoot);
+  fs.cpSync(npxNodeModules, path.join(stableRoot, "node_modules"), { recursive: true });
+
   return stableRoot;
 }
 
