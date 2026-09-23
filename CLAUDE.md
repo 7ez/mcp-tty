@@ -59,6 +59,18 @@ npm run dev      # tsx src/index.ts, no build step
   processes to the creating process. The SIGINT/SIGTERM handlers in `index.ts` are
   for fast/ordered cleanup on the cooperative path, not orphan prevention.
 
+## AGENTS.md
+
+`AGENTS.md` is meant to mirror this file exactly (some tools read that name instead).
+It's currently a plain copy, not a link — a hardlink was tried first but **hardlinks
+don't survive normal atomic-save edits** (editors/tools write-new + rename, which
+points the path at a new inode and leaves the old hardlink stale — confirmed: sizes
+and inode numbers diverged after a single edit here). A real symlink doesn't have
+this problem, but creating one needs admin/Developer Mode privilege this environment
+doesn't have. After editing this file, run `cp CLAUDE.md AGENTS.md` (or the
+equivalent) before committing — `git status` will show `AGENTS.md` as modified if
+you forget, so it's hard to miss, but it's not automatic.
+
 ## Testing conventions
 
 - `shellSession.test.ts`/`sessionManager.test.ts` spawn real shells (no mocking
