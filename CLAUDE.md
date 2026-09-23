@@ -61,15 +61,15 @@ npm run dev      # tsx src/index.ts, no build step
 
 ## AGENTS.md
 
-`AGENTS.md` is meant to mirror this file exactly (some tools read that name instead).
-It's currently a plain copy, not a link — a hardlink was tried first but **hardlinks
-don't survive normal atomic-save edits** (editors/tools write-new + rename, which
-points the path at a new inode and leaves the old hardlink stale — confirmed: sizes
-and inode numbers diverged after a single edit here). A real symlink doesn't have
-this problem, but creating one needs admin/Developer Mode privilege this environment
-doesn't have. After editing this file, run `cp CLAUDE.md AGENTS.md` (or the
-equivalent) before committing — `git status` will show `AGENTS.md` as modified if
-you forget, so it's hard to miss, but it's not automatic.
+`AGENTS.md` is a real relative symlink (`AGENTS.md -> CLAUDE.md`) — some tools read
+that filename instead of this one. No manual sync needed; editing this file is
+editing AGENTS.md. A hardlink was tried first and rejected: hardlinks don't survive
+normal atomic-save edits (editors write-new + rename, which points the path at a new
+inode and leaves the old hardlink stale). Creating a *relative* symlink on Windows
+needs the native `mklink` (from an actual `cmd.exe`/elevated shell) — PowerShell's
+`New-Item -ItemType SymbolicLink -Target` silently resolves the target to an absolute
+path even when given a relative string, which breaks portability across machines/
+clones. Don't recreate this link with `New-Item`.
 
 ## Testing conventions
 
