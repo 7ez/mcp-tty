@@ -1,0 +1,24 @@
+diff --git a/node_modules/node-pty/lib/conpty_console_list_agent.js b/node_modules/node-pty/lib/conpty_console_list_agent.js
+index 8c4fca9..75d682a 100644
+--- a/node_modules/node-pty/lib/conpty_console_list_agent.js
++++ b/node_modules/node-pty/lib/conpty_console_list_agent.js
+@@ -10,7 +10,17 @@ Object.defineProperty(exports, "__esModule", { value: true });
+ var utils_1 = require("./utils");
+ var getConsoleProcessList = utils_1.loadNativeModule('conpty_console_list').module.getConsoleProcessList;
+ var shellPid = parseInt(process.argv[2], 10);
+-var consoleProcessList = getConsoleProcessList(shellPid);
++var consoleProcessList;
++try {
++    // AttachConsole fails if the target process has already exited by the
++    // time this forked agent runs (a race inherent to how the parent calls
++    // it); fall back to just the shell pid, matching the parent's own
++    // fallback for when this agent doesn't respond in time.
++    consoleProcessList = getConsoleProcessList(shellPid);
++}
++catch (e) {
++    consoleProcessList = [shellPid];
++}
+ process.send({ consoleProcessList: consoleProcessList });
+ process.exit(0);
+ //# sourceMappingURL=conpty_console_list_agent.js.map
+\ No newline at end of file
