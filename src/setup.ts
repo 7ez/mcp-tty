@@ -91,8 +91,27 @@ function upsertServerEntry(configPath: string, createIfMissing: boolean, entry: 
   return hadEntry ? "updated" : "created";
 }
 
+/**
+ * `npx github:...` installs into npm's ephemeral npx cache — fine for running
+ * `setup` itself, but writing that path into a client's config would break
+ * silently whenever that cache entry gets evicted. If we detect that's where
+ * we're running from, copy the already-built package to a stable location
+ * under the user's home directory and point configs there instead.
+ */
+function ensureStableInstall(packageRoot: string): string {
+  if (!packageRoot.split(path.sep).includes("_npx")) return packageRoot;
+
+  const stableRoot = path.join(os.homedir(), ".mcp-tty");
+  console.log(`Running from a temporary npx cache; copying to a persistent location: ${stableRoot}\n`);
+  fs.rmSync(stableRoot, { recursive: true, force: true });
+  fs.cpSync(packageRoot, stableRoot, { recursive: true });
+  return stableRoot;
+}
+
 export function runSetup(): void {
-  const serverEntryPoint = path.join(path.dirname(fileURLToPath(import.meta.url)), "index.js");
+  const distDir = path.dirname(fileURLToPath(import.meta.url));
+  const packageRoot = ensureStableInstall(path.dirname(distDir));
+  const serverEntryPoint = path.join(packageRoot, "dist", "index.js");
   const entry = { command: process.execPath, args: [serverEntryPoint] };
 
   console.log(`Configuring mcp-tty (${serverEntryPoint})\n`);
