@@ -15,7 +15,8 @@
   },
   "files": [
     "dist",
-    "patches"
+    "patches",
+    "scripts"
   ],
   "scripts": {
     "postinstall": "node scripts/postinstall.mjs",
